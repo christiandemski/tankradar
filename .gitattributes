@@ -1,0 +1,3 @@
+# Shell-Skripte immer mit Linux-Zeilenenden, sonst bricht Bash ab (auch bei core.autocrlf=true)
+*.sh   text eol=lf
+gradlew text eol=lf
