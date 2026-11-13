@@ -1,0 +1,9 @@
+# Gebautes, Zwischenstände der Werkzeuge
+build/
+.gradle/
+.kotlin/
+.idea/
+*.iml
+local.properties
+# Signaturschlüssel und Passwort
+deploy/
