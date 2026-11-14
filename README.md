@@ -30,26 +30,36 @@ app/src/main/java/de/codekorb/tankradar/
 ```
 bash build-app.sh
 ```
-Braucht nur Docker. Es entsteht `build/tankradar.apk`. Beim ersten Lauf baut das Skript das Image `tankradar-build` (JDK 17, Android-SDK, Gradle, siehe `docker/Dockerfile`) und erzeugt den Signaturschlüssel.
+Braucht nur Docker. Es entstehen `build/tankradar.aab` (für Google Play) und `build/tankradar.apk` (zum direkten Installieren, aber ohne Android Auto). Beim ersten Lauf baut das Skript das Image `tankradar-build` (JDK 17, Android-SDK, Gradle, siehe `docker/Dockerfile`) und erzeugt den Signaturschlüssel.
 
-- Der Signaturschlüssel liegt in `deploy/tankradar.keystore`, das Passwort daneben in `deploy/tankradar.keystore.txt`. Beides steht nicht in Git und gehört gesichert: Ohne den Schlüssel lässt sich die installierte App nicht aktualisieren, nur deinstallieren und neu einrichten.
-- Für ein Update vorher `versionCode` in `app/build.gradle.kts` um eins erhöhen.
+- Der Signaturschlüssel liegt in `deploy/tankradar.keystore`, das Passwort daneben in `deploy/tankradar.keystore.txt`. Beides steht nicht in Git und gehört gesichert. Für Google Play ist er der Upload-Schlüssel: Ohne ihn nimmt Play keine neuen Fassungen an (zurücksetzen geht nur über den Play-Support).
+- Für ein Update vorher `versionCode` in `app/build.gradle.kts` um eins erhöhen. Play nimmt jede Nummer nur einmal an.
+- Google Play verlangt ein aktuelles `targetSdk` (seit 31.08.2026 mindestens 36). Wird es jährlich höher, hier und in `docker/Dockerfile` (`platforms;android-…`) anheben.
 - Das Projekt lässt sich auch in Android Studio öffnen (Gradle-Wrapper liegt bei).
 
-## Installieren
-1. `build/tankradar.apk` aufs Handy kopieren und dort öffnen. Android fragt einmal, ob Apps aus dieser Quelle installiert werden dürfen. Oder per USB: `adb install -r build/tankradar.apk`.
-2. Tankradar öffnen, den Tankerkönig-Schlüssel eintragen (derselbe wie im Dashboard), Sorte wählen und Favoriten suchen: nach Ort oder Adresse oder mit „Hier“ um den aktuellen Standort.
-3. Für „In der Nähe“ den Standort erlauben.
+## Warum über Google Play
+Android Auto zeigt Apps aus der Car App Library nur, wenn Android sie als „aus Google Play installiert“ kennt. Das Einschalten von „Unbekannte Quellen“ in den Entwicklereinstellungen von Android Auto hilft dabei nicht. Auch `adb install -i com.android.vending` hilft nicht. Darum kommt die App über einen **internen Test** in Google Play aufs Handy. Den sieht nur, wer in der Testerliste steht. Prüfen lässt sich das ohne Auto: In der Android-Auto-App unter „Launcher anpassen“ muss Tankradar auftauchen.
 
-## Android Auto einrichten (einmalig)
-Android Auto zeigt Apps, die nicht aus dem Play Store kommen, erst nach Freigabe in den Entwickleroptionen:
+## Google Play einrichten (einmalig)
+1. Entwicklerkonto anlegen unter [play.google.com/console](https://play.google.com/console) (25 $ einmalig, persönliches Konto). Google prüft die Identität, das kann einige Tage dauern.
+2. **App erstellen:** Name „Tankradar“, App, kostenlos. Der Paketname `de.codekorb.tankradar` steht ab dem ersten Upload fest.
+3. **Testen → Interner Test → Tester:** eine E-Mail-Liste mit dem eigenen Google-Konto (dem auf dem Handy) anlegen und speichern.
+4. **Interner Test → Neuen Release erstellen:** Bei der Frage nach der App-Signatur „Von Google verwaltet“ (Play App Signing) lassen. Dann `build/tankradar.aab` hochladen, Release prüfen und einführen. Fehlen noch Pflichtangaben unter „App-Inhalte“ (z. B. Datenschutzerklärung, Datensicherheit, Standort), zeigt die Console sie an. Sie müssen nur einmal ausgefüllt werden.
+5. Auf der Seite „Tester“ den **Link zur Teilnahme** öffnen (mit dem Handy-Konto), Teilnahme annehmen und Tankradar dort über den Play Store installieren.
+6. **Vorher die selbst installierte APK deinstallieren.** Play signiert mit einem eigenen Schlüssel, darüber lässt sich die alte Fassung nicht aktualisieren.
+7. In der Android-Auto-App unter „Launcher anpassen“ nachsehen, ob Tankradar dort steht. Falls nicht: In der Play Console unter **Test und Release → Einstellungen → Erweiterte Einstellungen → Formfaktoren** „Android Auto“ hinzufügen.
 
-1. Auf dem Handy die Einstellungen von Android Auto öffnen (Einstellungen → Verbundene Geräte → Verbindungseinstellungen → Android Auto, je nach Hersteller etwas anders).
-2. Ganz unten zehnmal auf **Version** tippen und bestätigen. Damit sind die Entwickleroptionen eingeschaltet.
-3. Oben rechts ⋮ → **Entwicklereinstellungen** → **Unbekannte Quellen** einschalten.
-4. Handy mit dem Auto verbinden. Tankradar erscheint in der App-Übersicht von Android Auto. Falls nicht: in den Android-Auto-Einstellungen unter „Launcher anpassen“ einblenden.
+Updates: `versionCode` erhöhen, `bash build-app.sh`, im internen Test einen neuen Release mit der neuen `.aab` erstellen. Der Play Store aktualisiert die App danach von selbst.
+
+## Einrichten auf dem Handy
+1. Tankradar öffnen, den Tankerkönig-Schlüssel eintragen (derselbe wie im Dashboard), Sorte wählen und Favoriten suchen: nach Ort oder Adresse oder mit „Hier“ um den aktuellen Standort.
+2. Für „In der Nähe“ den Standort erlauben.
+
+Nur für das Handy ohne Android Auto genügt auch die APK: `build/tankradar.apk` aufs Handy kopieren und öffnen oder `adb install -r build/tankradar.apk`.
 
 ## Stand
+**14.11.2026:** Android Auto zeigte die App nicht, weil sie nicht aus Google Play kam. Jetzt mit targetSdk 36 und App Bundle für einen internen Test in Google Play. Baut fehlerfrei.
+
 **13.11.2026:** Erste Fassung. Baut fehlerfrei und ohne Warnungen, die APK ist signiert. Antwortformat von Tankerkönig mit dem Demo-Schlüssel geprüft. Noch nicht auf dem Handy und nicht in Android Auto ausprobiert.
 
 Offen:

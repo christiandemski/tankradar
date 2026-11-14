@@ -11,14 +11,14 @@ val keystorePassword = rootProject.file("deploy/tankradar.keystore.txt").takeIf 
 
 android {
     namespace = "de.codekorb.tankradar"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "de.codekorb.tankradar"
         minSdk = 30
-        targetSdk = 35
-        versionCode = 1 // vor jedem neuen Paket um eins erhöhen, sonst nimmt Android es nicht als Update an
-        versionName = "1"
+        targetSdk = 36
+        versionCode = 2 // vor jedem neuen Paket um eins erhöhen, sonst nimmt Android es nicht als Update an
+        versionName = "2"
     }
     signingConfigs {
         if (keystore.exists() && keystorePassword != null) create("release") {

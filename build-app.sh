@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Baut Tankradar als signierte APK in Docker (kein Android Studio nötig).
+# Baut Tankradar als signierte APK und als App Bundle für Google Play in Docker (kein Android Studio nötig).
 #
-#   bash build-app.sh      erzeugt build/tankradar.apk
+#   bash build-app.sh      erzeugt build/tankradar.apk und build/tankradar.aab
 #
 # Beim ersten Lauf entsteht das Build-Image (JDK, Android-SDK, Gradle; docker/Dockerfile) und der Signaturschlüssel
 # deploy/tankradar.keystore mit dem Passwort in deploy/tankradar.keystore.txt. Beides steht nicht in Git und gehört gesichert:
@@ -13,7 +13,7 @@ cd "$(dirname "$0")"
 export MSYS_NO_PATHCONV=1   # Git Bash soll die Pfade im Container nicht umschreiben
 DIR="$(pwd -W 2>/dev/null || pwd)"
 IMG=tankradar-build
-docker image inspect $IMG >/dev/null 2>&1 || docker build -t $IMG docker
+docker build -q -t $IMG docker >/dev/null   # beim ersten Lauf und nach Änderungen am Dockerfile dauert das etwas
 # Gradle-Downloads liegen in einem eigenen Docker-Volume, damit der zweite Lauf schnell geht
 RUN=(docker run --rm -v "$DIR:/app" -v tankradar-gradle:/cache/gradle -w /app $IMG)
 
@@ -26,7 +26,8 @@ if [ ! -f deploy/tankradar.keystore ]; then
   echo "Neuer Signaturschlüssel: deploy/tankradar.keystore, Passwort in deploy/tankradar.keystore.txt. Bitte sichern."
 fi
 
-"${RUN[@]}" gradle --no-daemon -q assembleRelease
+"${RUN[@]}" gradle --no-daemon -q assembleRelease bundleRelease
 mkdir -p build
 cp app/build/outputs/apk/release/app-release.apk build/tankradar.apk
-echo "Fertig: build/tankradar.apk"
+cp app/build/outputs/bundle/release/app-release.aab build/tankradar.aab
+echo "Fertig: build/tankradar.apk (Handy), build/tankradar.aab (Google Play)"
