@@ -105,7 +105,11 @@ class ListScreen(ctx: CarContext) : Screen(ctx) {
             val text = SpannableString("  · $address")
             text.setSpan(DistanceSpan.create(Distance.create(q.dist, Distance.UNIT_KILOMETERS)), 0, 1, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
             r.addText(text)
-        } else r.addText(address)
+        } else {
+            // Ohne Standort keine Entfernung. Die Kartenvorlage lässt Zeilen ohne DistanceSpan nur zu, wenn sie
+            // „browsable“ sind (sonst stürzt die App ab). Das passt: ein Tipp öffnet ohnehin die Detailseite.
+            r.addText(address).setBrowsable(true)
+        }
         if (p == null) r.addText(if (q.open) "kein Preis" else "geschlossen")
 
         val marker = PlaceMarker.Builder()

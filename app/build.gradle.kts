@@ -17,8 +17,8 @@ android {
         applicationId = "de.codekorb.tankradar"
         minSdk = 30
         targetSdk = 36
-        versionCode = 2 // vor jedem neuen Paket um eins erhöhen, sonst nimmt Android es nicht als Update an
-        versionName = "2"
+        versionCode = 3 // vor jedem neuen Paket um eins erhöhen, sonst nimmt Android es nicht als Update an
+        versionName = "3"
     }
     signingConfigs {
         if (keystore.exists() && keystorePassword != null) create("release") {
